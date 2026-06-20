@@ -183,6 +183,10 @@ if "email_logs" not in st.session_state or "action_logs" not in st.session_state
     st.session_state.email_logs = saved_emails
     st.session_state.action_logs = saved_actions
 
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+    st.session_state.logged_in_user = None
+
 # Load current attendance records
 df_attendance = load_data().dropna(subset=["Roll Number"])
 df_attendance["Roll Number"] = df_attendance["Roll Number"].astype(int)
@@ -198,14 +202,72 @@ SUBJECTS = {
 st.sidebar.markdown("### Tracker Configuration")
 
 # Staff Authentication Gate
+STAFF_CREDENTIALS_FILE = "staff_credentials.json"
+
+def load_staff_credentials():
+    """Loads staff username/password pairs from file, creating a default admin account if missing."""
+    if os.path.exists(STAFF_CREDENTIALS_FILE):
+        try:
+            with open(STAFF_CREDENTIALS_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    default_creds = {"admin": "admin123"}
+    with open(STAFF_CREDENTIALS_FILE, "w") as f:
+        json.dump(default_creds, f, indent=4)
+    return default_creds
+
+def save_staff_credentials(creds):
+    with open(STAFF_CREDENTIALS_FILE, "w") as f:
+        json.dump(creds, f, indent=4)
+
+staff_credentials = load_staff_credentials()
+
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Staff Access Gate")
-auth_password = st.sidebar.text_input(
-    "Staff Password", type="password", value="",
-    placeholder="Enter password to unlock form",
-    help="Contact the administrator for the staff access password."
-)
-is_authenticated = (auth_password == "admin123")
+st.sidebar.markdown("### Staff Login")
+
+if not st.session_state.authenticated:
+    auth_tab = st.sidebar.radio("Access", ["Login", "Sign Up"], horizontal=True, label_visibility="collapsed")
+
+    if auth_tab == "Login":
+        with st.sidebar.form("login_form"):
+            login_username = st.text_input("Username", placeholder="Enter staff username")
+            login_password = st.text_input("Password", type="password", placeholder="Enter password")
+            login_submit = st.form_submit_button("Login", use_container_width=True)
+
+            if login_submit:
+                if login_username in staff_credentials and staff_credentials[login_username] == login_password:
+                    st.session_state.authenticated = True
+                    st.session_state.logged_in_user = login_username
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password.")
+    else:
+        with st.sidebar.form("signup_form"):
+            new_username = st.text_input("Choose Username", placeholder="e.g. ci_staff")
+            new_password = st.text_input("Choose Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
+            signup_submit = st.form_submit_button("Create Account", use_container_width=True)
+
+            if signup_submit:
+                if not new_username or not new_password:
+                    st.error("Username and password cannot be empty.")
+                elif new_username in staff_credentials:
+                    st.error("This username already exists. Please log in instead.")
+                elif new_password != confirm_password:
+                    st.error("Passwords do not match.")
+                else:
+                    staff_credentials[new_username] = new_password
+                    save_staff_credentials(staff_credentials)
+                    st.success("Account created successfully. You can now log in from the Login tab.")
+else:
+    st.sidebar.success(f"Logged in as: {st.session_state.logged_in_user}")
+    if st.sidebar.button("Logout"):
+        st.session_state.authenticated = False
+        st.session_state.logged_in_user = None
+        st.rerun()
+
+is_authenticated = st.session_state.authenticated
 
 # Threshold configuration
 warning_threshold = st.sidebar.number_input("Warning Leave Threshold", min_value=1, max_value=5, value=2, step=1,

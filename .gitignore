@@ -1,6 +1,7 @@
-# Logs
+# Logs and Credentials
 email_logs.json
 action_logs.json
+staff_credentials.json
 
 # Python Cache
 __pycache__/
