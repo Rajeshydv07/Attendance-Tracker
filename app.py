@@ -479,7 +479,8 @@ with left_col:
         return 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;'
 
     # Apply custom pandas styling to show warning/critical ranges visually
-    styled_df = df_filtered.style.applymap(
+    # Use .map() for compatibility with modern Pandas versions (2.1.0+)
+    styled_df = df_filtered.style.map(
         color_attendance, 
         subset=["CI", "Python", "DM"]
     )
