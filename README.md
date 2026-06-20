@@ -2,6 +2,12 @@
 
 A modern, interactive, and data-science-powered **Student Attendance Tracker & Email Reminder System** built using Python, Streamlit, and Pandas. This system allows academic staff to log student absences, view real-time metrics, analyze leave charts, and automate professional email warnings when students reach leave thresholds.
 
+## Website Layout
+
+Here is a preview of the clean, professional, and emoji-free dashboard layout:
+
+![Website Layout Preview](screenshot.png)
+
 ---
 
 ## Key Features
