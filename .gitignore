@@ -1,0 +1,10 @@
+# Logs
+email_logs.json
+action_logs.json
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Streamlit config (optional, but good to keep tracked if customized)
+#.streamlit/config.toml
